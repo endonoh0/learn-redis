@@ -11,37 +11,19 @@
 |
 */
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $user3Stats = [
-        'favorites' => 10,
-        'watchLaters' => 20,
-        'completions' => 35
-    ];
-    // Add hash to database
-    Redis::hmset('user.3.stats', $user3Stats);
-    // Display to screen
-    return Redis::hgetall('user.3.stats');
+    // Fetch database query from memory if key exists
+    if (Redis::exists('articles.all')) {
+        return json_decode(Redis::get('articles.all'));
+    };
 
-    // Cache
-    Cache::put('foo', 'bar', 10);
-    return Cache::get('foo');
+    // Perform database query
+    $articles = App\Article::all();
+    // Put into Redis
+    Redis::set('article.all', $articles);
 
-    // Return favorites count for this user
-    return Redis::hgetall('user.1.stats')['favorites'];
-});
-
-Route::get('users/{id}/stats', function ($id) {
-    // Fetch stats from the user with the given id
-    return Redis::hgetall("user.${id}.stats");
-});
-
-Route::get('favorite-video', function () {
-    // Increment counter
-    Redis::hincrby('user.1.stats', 'favorites', 1);
-
-    return redirect('/');
+    return $articles;
 });
