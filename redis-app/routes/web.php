@@ -11,25 +11,11 @@
 |
 */
 
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
-function remeber($key, $min, $callback)
-{
-    // If this value exists in cache, fetch the results form the database query
-    if ($value = Redis::get('articles.all')) {
-        return json_decode($value);
-    };
-    // Perform database query
-    $value = $callback();
-    // Set a value with an expiration date of 60 seconds
-    Redis::setex($key, $min, $value);
-
-    return $value;
-}
-
 Route::get('/', function () {
-    remeber('articles.all', 60 * 60, function () {
+    return Cache::remember('articles.all', 60 * 60, function () {
         return App\Articles::all();
     });
 });
