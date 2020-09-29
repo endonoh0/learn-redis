@@ -14,16 +14,22 @@
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    // Fetch database query from memory if key exists
-    if (Redis::exists('articles.all')) {
-        return json_decode(Redis::get('articles.all'));
+function remeber($key, $min, $callback)
+{
+    // If this value exists in cache, fetch the results form the database query
+    if ($value = Redis::get('articles.all')) {
+        return json_decode($value);
     };
-
     // Perform database query
-    $articles = App\Article::all();
-    // Put into Redis
-    Redis::set('article.all', $articles);
+    $value = $callback();
+    // Set a value with an expiration date of 60 seconds
+    Redis::setex($key, $min, $value);
 
-    return $articles;
+    return $value;
+}
+
+Route::get('/', function () {
+    remeber('articles.all', 60 * 60, function () {
+        return App\Articles::all();
+    });
 });
