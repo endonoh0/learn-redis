@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,11 @@ class CacheableArticles
     }
 }
 
+// Bind the key Articles and return a new instant
+App::bind('Articles', function () {
+    return new CacheableArticles(new Articles);
+})
+
 class Articles
 {
     public function all()
@@ -32,7 +38,9 @@ class Articles
 }
 
 Route::get('/', function () {
-    $articles = new CacheableArticles(new Articles);
+    // Same thing as resolve()
+    App::make('Articles');
+    // $articles = new CacheableArticles(new Articles);
 
-    return $articles->all();
+    // return $articles->all();
 });
