@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
-|--------------------------------------------------------------------------
+|----------------- ---------------------------------------------------------
 |
 | Here is where you can register web routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
@@ -14,9 +14,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    // increment on visits (key) which defaults to one and then two on each page reload
-    $visits = Redis::incr('visits');
+Route::get('videos/{id}', function ($id) {
+    $downloads = Redis::get("videos.{$id}.downloads");
 
-    return view('welcome')->withVisits($visits);
+    return view('welcome')->withDownloads($downloads);
+});
+
+Route::get('videos/{id}/downloads', function ($id) {
+    // Prepare the download.
+
+    // Create namespace seperated by period or semi-colon
+    Redis::incr("videos.{$id}.downloads");
+
+    return back();
 });
